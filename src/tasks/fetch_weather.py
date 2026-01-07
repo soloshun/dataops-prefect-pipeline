@@ -9,8 +9,21 @@ from prefect import task
 LONDON_LAT = 51.50853
 LONDON_LON = -0.12574
 
-# @task
-def fetch_weather(lat: float=LONDON_LAT, lon: float=LONDON_LON) -> pd.DataFrame:
+@task
+def fetch_weather_data(
+        date: str="2026-01-06", 
+        lat: float=LONDON_LAT, 
+        lon: float=LONDON_LON
+    ) -> pd.DataFrame:
+    """
+    Fetch hourly weather data from Open-Meteo API for a given date and location.
+    Args:
+        date (str): Date in "YYYY-MM-DD" format. Defaults to yesterday's date.
+        lat (float): Latitude of the location. Defaults to London's latitude.
+        lon (float): Longitude of the location. Defaults to London's longitude.
+    Returns:
+        pd.DataFrame: DataFrame containing hourly weather data.
+    """
     # Setup the Open-Meteo API client with cache and retry on error
     cache_session = requests_cache.CachedSession('../../data/raw/.cache', expire_after = 3600)
     retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
@@ -24,8 +37,8 @@ def fetch_weather(lat: float=LONDON_LAT, lon: float=LONDON_LON) -> pd.DataFrame:
         "longitude": lon,
         "hourly": ["precipitation", "wind_speed_10m", "wind_gusts_10m", "relative_humidity_2m", "temperature_2m", "surface_pressure"],
         "timezone": "Europe/London",
-        "start_date": _get_yesterdays_date(),
-        "end_date": _get_yesterdays_date(),
+        "start_date": date,
+        "end_date": date,
     }
     responses = openmeteo.weather_api(url, params=params)
 
@@ -63,13 +76,6 @@ def fetch_weather(lat: float=LONDON_LAT, lon: float=LONDON_LON) -> pd.DataFrame:
     # print("\nHourly data\n", hourly_dataframe)
     return hourly_dataframe
 
-
-def _get_yesterdays_date() -> str:
-    from datetime import datetime, timedelta, timezone
-    yesterday = datetime.now(timezone.utc) - timedelta(days=1)
-    return yesterday.strftime("%Y-%m-%d")
-
-
-if __name__ == "__main__":
-    df = fetch_weather()
-    print(df)
+# if __name__ == "__main__":
+#     df = fetch_weather()
+#     print(df)
