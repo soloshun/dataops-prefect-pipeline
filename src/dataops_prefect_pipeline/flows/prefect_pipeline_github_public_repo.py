@@ -8,12 +8,10 @@ if __name__ == "__main__":
         name="prefect-pipeline-github-deployment",
         work_pool_name="london-weather-cloud-pool",
         image="prefecthq/prefect-client:3-latest",
+        build=True,
         schedule=schedules.Cron( 
             "30 8 * * *", # create a daily schedule at 8:30 AM London time
             # "0 9 * * *", # create a daily schedule at 9 AM London time
             timezone="Europe/London"
-        ),
-        job_variables={
-            "pip_packages": ["."]
-        }
+        )
     )
