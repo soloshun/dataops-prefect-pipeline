@@ -1,1 +1,8 @@
-{"temperature_2m":0.1787499934,"precipitation":0.0625000075,"relative_humidity_2m":84.4583358765,"wind_speed_10m":9.5737524033,"wind_gusts_10m":19.9200000763,"surface_pressure":1012.7516479492}
+{
+  "temperature_2m": 0.1787499934,
+  "precipitation": 0.0625000075,
+  "relative_humidity_2m": 84.4583358765,
+  "wind_speed_10m": 9.5737524033,
+  "wind_gusts_10m": 19.9200000763,
+  "surface_pressure": 1012.7516479492
+}
