@@ -5,6 +5,7 @@ import requests_cache
 from retry_requests import retry
 
 from prefect import task
+from dataops_prefect_pipeline.utils.config import RAW_DATA_PATH
 
 LONDON_LAT = 51.50853
 LONDON_LON = -0.12574
@@ -25,7 +26,7 @@ def fetch_weather_data(
         pd.DataFrame: DataFrame containing hourly weather data.
     """
     # Setup the Open-Meteo API client with cache and retry on error
-    cache_session = requests_cache.CachedSession('../../data/raw/.cache', expire_after = 3600)
+    cache_session = requests_cache.CachedSession(f'{RAW_DATA_PATH}.cache', expire_after = 3600)
     retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
     openmeteo = openmeteo_requests.Client(session = retry_session)
 
@@ -75,7 +76,3 @@ def fetch_weather_data(
     hourly_dataframe = pd.DataFrame(data = hourly_data)
     # print("\nHourly data\n", hourly_dataframe)
     return hourly_dataframe
-
-# if __name__ == "__main__":
-#     df = fetch_weather()
-#     print(df)

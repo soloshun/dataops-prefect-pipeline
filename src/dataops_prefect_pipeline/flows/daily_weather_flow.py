@@ -5,11 +5,14 @@ def daily_london_weather_flow() -> dict:
     """
     Flow to fetch daily weather data for London.
     """
-    from src.tasks.fetch_weather import fetch_weather_data
-    from src.tasks.compute_daily_average import compute_daily_average
-    from src.utils.dates import get_yesterdays_date
-    from src.tasks.store_results import store_results
-    from src.utils.config import RAW_DATA_PATH, PROCESSED_DATA_PATH
+    from dataops_prefect_pipeline.tasks.fetch_weather import fetch_weather_data
+    from dataops_prefect_pipeline.tasks.compute_daily_average import compute_daily_average
+    from dataops_prefect_pipeline.utils.dates import get_yesterdays_date
+    from dataops_prefect_pipeline.tasks.store_results import store_results
+    from dataops_prefect_pipeline.utils.config import (
+        RAW_DATA_PATH, 
+        PROCESSED_DATA_PATH
+    )
 
     # Get yesterday's date
     date = get_yesterdays_date()
@@ -18,7 +21,7 @@ def daily_london_weather_flow() -> dict:
     hourly_data = fetch_weather_data(date=date)
 
     # Store hourly raw data
-    store_results(
+    store_results (
         hourly_data=hourly_data,
         path=RAW_DATA_PATH,
         file_name="london_hourly_weather",
@@ -30,7 +33,7 @@ def daily_london_weather_flow() -> dict:
     daily_summary = compute_daily_average(hourly_data)
 
     # Store processed daily summary data
-    store_results(
+    store_results (
         hourly_data=daily_summary,
         path=PROCESSED_DATA_PATH,
         file_name="london_daily_weather_summary",
@@ -41,6 +44,8 @@ def daily_london_weather_flow() -> dict:
     return daily_summary.to_dict()
 
 
+# uncomment this code run `python daily_weather_flow.py` for local to could deployment
+"""
 if __name__ == "__main__":
     import os, sys
     repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -55,3 +60,4 @@ if __name__ == "__main__":
             timezone="Europe/London"
         )
     )
+"""
