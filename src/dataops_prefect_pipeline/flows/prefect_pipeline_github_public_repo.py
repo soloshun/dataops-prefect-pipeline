@@ -14,7 +14,4 @@ if __name__ == "__main__":
             # "0 9 * * *", # create a daily schedule at 9 AM London time
             timezone="Europe/London"
         ),
-        job_variables={
-            "pip_packages": ["."]
-        }
     )

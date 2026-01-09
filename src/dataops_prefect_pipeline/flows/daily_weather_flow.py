@@ -1,3 +1,12 @@
+import os
+import sys
+
+# Ensure 'src' is in the path so we can import modules from dataops_prefect_pipeline
+# this is needed because we are not using 'pip install .' in the remote environment
+repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if repo_root not in sys.path:
+    sys.path.insert(0, repo_root)
+
 from prefect import flow, schedules
 
 @flow
@@ -56,10 +65,6 @@ def daily_london_weather_flow() -> dict:
 # uncomment this code run `python daily_weather_flow.py` for local to could deployment
 """
 if __name__ == "__main__":
-    import os, sys
-    repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    if repo_root not in sys.path:
-        sys.path.insert(0, repo_root)
     daily_london_weather_flow.deploy(
         name="daily-london-weather-pipeline",
         work_pool_name="london-weather-cloud-pool",
