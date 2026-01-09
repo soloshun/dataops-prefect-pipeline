@@ -7,7 +7,9 @@ repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 if repo_root not in sys.path:
     sys.path.insert(0, repo_root)
 
-from prefect import flow, schedules
+from prefect import flow, get_run_logger
+
+logger = get_run_logger()
 
 @flow
 def daily_london_weather_flow() -> dict:
@@ -27,12 +29,12 @@ def daily_london_weather_flow() -> dict:
     date = get_yesterdays_date()
 
     # Fetch hourly weather data for London
-    print(f"Fetching hourly weather data for London on {date}...")
+    logger.info(f"Fetching hourly weather data for London on {date}...")
     hourly_data = fetch_weather_data(date=date)
-    print("Hourly weather data fetched.")
+    logger.info("Hourly weather data fetched.")
 
     # Store hourly raw data
-    print("Storing raw hourly data... to", RAW_DATA_PATH)
+    logger.info("Storing raw hourly data... to", RAW_DATA_PATH)
     store_results (
         hourly_data=hourly_data,
         path=RAW_DATA_PATH,
@@ -40,15 +42,15 @@ def daily_london_weather_flow() -> dict:
         date=date,
         file_type="csv"
     )
-    print("Raw hourly data stored.")
+    logger.info("Raw hourly data stored.")
 
     # Compute daily average temperature and total precipitation
-    print("Calculating daily summary...")
+    logger.info("Calculating daily summary...")
     daily_summary = compute_daily_average(hourly_data)
-    print("Daily summary calculated.")
+    logger.info("Daily summary calculated.")
 
     # Store processed daily summary data
-    print("Storing daily summary data... to", PROCESSED_DATA_PATH)
+    logger.info("Storing daily summary data... to", PROCESSED_DATA_PATH)
     store_results (
         hourly_data=daily_summary,
         path=PROCESSED_DATA_PATH,
@@ -56,9 +58,9 @@ def daily_london_weather_flow() -> dict:
         date=date,
         file_type="json"
     )
-    print(f"Daily summary data stored at {PROCESSED_DATA_PATH}")
+    logger.info(f"Daily summary data stored at {PROCESSED_DATA_PATH}")
 
-    print(f"Daily London weather summary for {date}: {daily_summary.to_dict()}")
+    logger.info(f"Daily London weather summary for {date}: {daily_summary.to_dict()}")
     return daily_summary.to_dict()
 
 
