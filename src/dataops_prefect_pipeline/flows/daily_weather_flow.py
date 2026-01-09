@@ -9,8 +9,6 @@ if repo_root not in sys.path:
 
 from prefect import flow, get_run_logger
 
-logger = get_run_logger()
-
 @flow
 def daily_london_weather_flow() -> dict:
     """
@@ -24,6 +22,8 @@ def daily_london_weather_flow() -> dict:
         RAW_DATA_PATH, 
         PROCESSED_DATA_PATH
     )
+    
+    logger = get_run_logger()
 
     # Get yesterday's date
     date = get_yesterdays_date()
