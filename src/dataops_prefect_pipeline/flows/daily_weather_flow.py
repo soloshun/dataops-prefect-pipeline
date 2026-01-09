@@ -31,7 +31,7 @@ def daily_london_weather_flow() -> dict:
     # Fetch hourly weather data for London
     logger.info(f"Fetching hourly weather data for London on {date}...")
     hourly_data = fetch_weather_data(date=date)
-    logger.info("Hourly weather data fetched.")
+    logger.info(f"Hourly weather data fetched for {date}: {hourly_data.to_dict()}")
 
     # Store hourly raw data
     logger.info("Storing raw hourly data... to", RAW_DATA_PATH)
