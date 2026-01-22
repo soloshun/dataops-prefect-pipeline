@@ -7,18 +7,26 @@ from prefect.client.orchestration import get_client
 import asyncio
 
 # --- MOCKING YOUR FRAMEWORK/JOB.PY ---
-class JobLoggerAdapter(logging.LoggerAdapter):
+class PrefectJobLoggerAdapter:
     """
-    This is the secret sauce. It intercepts every log call 
-    and adds the 'flow_run_id' to it.
+    Wraps Prefect's logger to inject flow_run_id into every log message.
+    Works with Prefect's native logging system.
     """
-    def process(self, msg, kwargs):
-        # This ensures every log message gets { "flow_run_id": "..." }
-        # Datadog will automatically index this field.
-        extra = kwargs.get('extra', {})
-        extra.update(self.extra)
-        kwargs['extra'] = extra
-        return msg, kwargs
+    def __init__(self, logger, flow_run_id: str):
+        self.logger = logger
+        self.flow_run_id = flow_run_id
+    
+    def info(self, msg, **kwargs):
+        self.logger.info(f"[{self.flow_run_id}] {msg}", **kwargs)
+    
+    def warning(self, msg, **kwargs):
+        self.logger.warning(f"[{self.flow_run_id}] {msg}", **kwargs)
+    
+    def error(self, msg, **kwargs):
+        self.logger.error(f"[{self.flow_run_id}] {msg}", **kwargs)
+    
+    def debug(self, msg, **kwargs):
+        self.logger.debug(f"[{self.flow_run_id}] {msg}", **kwargs)
 
 class BaseJob:
     """
@@ -27,12 +35,11 @@ class BaseJob:
     def __init__(self, run_id: str = "N/A"):
         self.run_id = run_id
         
-        # Standard Python logger
-        base_logger = logging.getLogger(self.__class__.__name__)
-        base_logger.setLevel(logging.INFO)
+        # Use Prefect's logger instead of standard logging
+        prefect_logger = get_run_logger()
         
-        # Wrap it! Now every log from 'self.logger' has the ID attached.
-        self.logger = JobLoggerAdapter(base_logger, {"flow_run_id": self.run_id})
+        # Wrap it to inject flow_run_id into messages
+        self.logger = PrefectJobLoggerAdapter(prefect_logger, self.run_id)
 
     def run(self):
         # This log will have the ID attached automatically
@@ -60,7 +67,8 @@ def job_flow_poc():
     
     # 2. Dynamic Renaming (The "UI Traceability" part)
     # We use the client to update the name *during* the run.
-    new_flow_name = f"Solar-Job-EXEC-{str(run_id)[:8]}"
+    new_flow_name = f"Solar-Job-EXEC-{str(run_id)}"
+    # new_flow_name = f"Solar-Job-EXEC-{str(run_id)[:8]}"
     print(f"--> Changing Flow Name to: {new_flow_name}")
     
     # We need to run the async client update in a sync flow
@@ -77,8 +85,5 @@ async def _rename_flow_run(flow_run_id, new_name):
         await client.update_flow_run(flow_run_id, name=new_name)
 
 if __name__ == "__main__":
-    # Setup basic logging config so you can see output in terminal
-    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s (Context: %(flow_run_id)s)')
-    
     # Run the flow
     job_flow_poc()
